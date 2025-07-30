@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BPM</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 20px;
+      background: #121212;
+      color: #e0e0e0;
+    }
+
+    h1 {
+      font-size: 2em;
+      margin-bottom: 20px;
+      color: #ffffff;
+    }
+
+    #breathAnim {
+      width: 30vw;
+      max-width: 150px;
+      height: 30vw;
+      max-height: 150px;
+      background-color: #1e88e5;
+      margin: 20px auto;
+      border-radius: 50%;
+      transition: transform 1s ease-in-out;
+    }
+
+    .inhale { transform: scale(1.2); }
+    .exhale { transform: scale(0.8); }
+
+    button {
+      padding: 15px 30px;
+      margin: 10px;
+      font-size: 1.2em;
+      border: none;
+      border-radius: 5px;
+      background-color: #1e88e5;
+      color: #ffffff;
+      cursor: pointer;
+    }
+
+    button:active {
+      background-color: #1565c0;
+    }
+
+    #bpmDisplay {
+      font-size: 1.2em;
+      margin-top: 10px;
+      color: #ffffff;
+    }
+
+    #countdown {
+      font-size: 1.5em;
+      margin-top: 10px;
+      color: #ffffff;
+    }
+
+    #tapCounter {
+      font-size: 1.2em;
+      margin-top: 10px;
+      color: #ffffff;
+    }
+
+    @media (max-width: 480px) {
+      h1 { font-size: 1.5em; }
+      button { font-size: 1.1em; padding: 12px 24px; }
+      #bpmDisplay { font-size: 1em; }
+    }
+
+    /* Add styles to center the "Breath" button on its own row */
+    .button-container {
+      display: flex;
+      justify-content: center;
+      margin: 100px 0 0 0;
+    }
+
+    .button-container button {
+      width: 90vw; /* Fixed width for the button */
+      font-weight: bold; /* Bold text */
+      height: 200px;
+    }
+  </style>
+</head>
+<body>
+  <div id="breathAnim"></div>
+  <div  onclick="registerBreath()">
+    <div class="button-container">
+      <button>TAP</button>
+    </div>
+    
+    <p id="bpmDisplay">BPM: 0</p>
+    <p id="countdown">Time Left: 60s</p>
+    <p id="tapCounter">Taps: 0</p>
+  </div>
+  <button onclick="replayBreaths()">Replay</button>
+  <button onclick="resetTracker()">Reset</button>
+
+  <script>
+    let timestamps = [];
+    let tapCount = 0;
+    let countdown = 60;
+    let countdownInterval;
+
+    function startCountdown() {
+      countdownInterval = setInterval(() => {
+        if (countdown <= 0) {
+          clearInterval(countdownInterval);
+          document.getElementById("countdown").innerText = "Time's up!";
+          return;
+        }
+        countdown--;
+        document.getElementById("countdown").innerText = "Time Left: " + countdown + "s";
+      }, 1000);
+    }
+
+    function stopCountdown() {
+      clearInterval(countdownInterval);
+      countdown = 60; // Reset countdown for next use
+      document.getElementById("countdown").innerText = "Time Left: 60s";
+    }
+
+    function registerBreath() {
+      if (countdown === 60) startCountdown(); // Start countdown on the first tap
+      if (countdown <= 0) return; // Ignore taps after time's up
+      tapCount++;
+      document.getElementById("tapCounter").innerText = "Taps: " + tapCount;
+
+      const now = Date.now();
+      timestamps.push(now);
+      if (timestamps.length > 1) {
+        const duration = (now - timestamps[0]) / 60000;
+        const bpm = Math.round((timestamps.length - 1) / duration);
+        document.getElementById("bpmDisplay").innerText = "BPM: " + bpm;
+      }
+    }
+
+    function replayBreaths() {
+      let i = 0;
+      const anim = document.getElementById("breathAnim");
+      const interval = setInterval(() => {
+        if (i >= timestamps.length) {
+          clearInterval(interval);
+          anim.className = "";
+          return;
+        }
+        anim.className = i % 2 === 0 ? "inhale" : "exhale";
+        i++;
+      }, 1000);
+    }
+
+    function resetTracker() {
+      clearInterval(countdownInterval);
+      stopCountdown();
+      timestamps = [];
+      tapCount = 0;
+      countdown = 60;
+      document.getElementById("bpmDisplay").innerText = "BPM: 0";
+      document.getElementById("countdown").innerText = "Time Left: 60s";
+      document.getElementById("tapCounter").innerText = "Taps: 0";
+      document.getElementById("breathAnim").className = ""; // Reset animation
+    }
+  </script>
+</body>
+</html>
